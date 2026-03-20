@@ -21,6 +21,7 @@ ${ascii}
 
 STATE:
 - Position: row ${state.pos[0]}, col ${state.pos[1]}
+- Exit (E): row ${state.exit[0]}, col ${state.exit[1]}
 - Facing: ${state.direction}
 - Recent moves: ${recentHistory}
 - Steps: ${state.steps}
@@ -36,11 +37,12 @@ ${validMoves.map((dir) => {
 
 RULES:
 1. You MUST pick one of the valid moves listed above. Do not question them.
-2. STRONGLY prefer moves leading to UNVISITED cells — they open new territory.
-3. Only go to an ALREADY VISITED cell if all valid moves are visited (backtracking).
-4. Avoid back-and-forth: recent moves are ${state.history.slice(-6).join(' → ') || 'none'}.
+2. Your PRIMARY goal is to reach the Exit E at (${state.exit[0]}, ${state.exit[1]}). Navigate toward it.
+3. STRONGLY prefer moves leading to UNVISITED cells — they open new territory.
+4. Only go to an ALREADY VISITED cell if all valid moves are visited (backtracking to try a new route).
+5. Avoid back-and-forth: recent moves are ${state.history.slice(-6).join(' → ') || 'none'}.
 
-Think briefly about which valid move explores new territory, then respond with exactly:
+Think briefly about which valid move gets you closer to the exit via unvisited paths, then respond with exactly:
 MOVE: <direction>`;
 
   const response = await client.chat.completions.create({

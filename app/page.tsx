@@ -3,13 +3,14 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import MazeBoard from '@/components/MazeBoard';
 import ReasoningPanel from '@/components/ReasoningPanel';
-import { generateMaze, findStart } from '@/lib/maze';
+import { generateMaze, findStart, findExit } from '@/lib/maze';
 import { type Direction, type GameState, applyMove, getValidMoves, posKey } from '@/lib/game';
 
 function newGame(): GameState {
   const maze = generateMaze(21, 21);
   const pos = findStart(maze);
-  return { maze, pos, direction: 'RIGHT', alive: true, steps: 0, history: [], visited: [posKey(...pos)] };
+  const exit = findExit(maze);
+  return { maze, pos, exit, direction: 'RIGHT', alive: true, won: false, steps: 0, history: [], visited: [posKey(...pos)] };
 }
 
 export default function Home() {
@@ -18,7 +19,7 @@ export default function Home() {
   const [tickMs, setTickMs] = useState(1000);
   const [reasoning, setReasoning] = useState('');
   const [streaming, setStreaming] = useState(false);
-  const [status, setStatus] = useState<'idle' | 'running' | 'dead' | 'trapped' | 'error'>('idle');
+  const [status, setStatus] = useState<'idle' | 'running' | 'dead' | 'trapped' | 'error' | 'won'>('idle');
   const [errorMsg, setErrorMsg] = useState('');
 
   // Initialize maze on client only (Math.random() causes hydration mismatch if run on server)
@@ -35,7 +36,7 @@ export default function Home() {
   const tick = useCallback(async () => {
     if (isTickingRef.current) return; // prevent concurrent ticks
     const state = gameStateRef.current;
-    if (!state || !state.alive) return;
+    if (!state || !state.alive || state.won) return;
     isTickingRef.current = true;
 
     // Handle trivial cases client-side — no need to call the LLM
@@ -98,7 +99,10 @@ export default function Home() {
       setGameState((prev) => {
         if (!prev) return prev;
         const next = applyMove(prev, move!);
-        if (!next.alive) {
+        if (next.won) {
+          setStatus('won');
+          setRunning(false);
+        } else if (!next.alive) {
           setStatus('dead');
           setRunning(false);
         }
@@ -170,6 +174,11 @@ export default function Home() {
             </div>
 
             {/* Status badge */}
+            {status === 'won' && (
+              <div className="bg-green-900 border border-green-500 rounded px-3 py-2 text-green-300 text-sm font-bold">
+                Maze solved in {gameState.steps} steps!
+              </div>
+            )}
             {status === 'dead' && (
               <div className="bg-red-900 border border-red-600 rounded px-3 py-2 text-red-300 text-sm">
                 Snake hit a wall after {gameState.steps} steps.

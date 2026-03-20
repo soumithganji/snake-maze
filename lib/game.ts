@@ -5,8 +5,10 @@ export type Direction = 'UP' | 'DOWN' | 'LEFT' | 'RIGHT';
 export interface GameState {
   maze: Grid;
   pos: [number, number];
+  exit: [number, number];
   direction: Direction;
   alive: boolean;
+  won: boolean;
   steps: number;
   history: Direction[];   // last N moves
   visited: string[];      // "r,c" keys of all cells stepped on
@@ -66,6 +68,7 @@ export function applyMove(state: GameState, direction: Direction): GameState {
   const history = [...state.history, direction].slice(-10);
   const visitedSet = new Set(state.visited);
   visitedSet.add(posKey(nr, nc));
+  const won = nr === state.exit[0] && nc === state.exit[1];
 
   return {
     ...state,
@@ -74,15 +77,18 @@ export function applyMove(state: GameState, direction: Direction): GameState {
     steps: state.steps + 1,
     history,
     visited: Array.from(visitedSet),
+    won,
   };
 }
 
 export function mazeToAscii(state: GameState): string {
   const visitedSet = new Set(state.visited);
+  const [er, ec] = state.exit;
   return state.maze
     .map((row, r) =>
       row.map((cell, c) => {
         if (r === state.pos[0] && c === state.pos[1]) return 'S';
+        if (r === er && c === ec) return 'E';
         if (cell === '.' && visitedSet.has(posKey(r, c))) return 'v';
         return cell;
       }).join('')

@@ -2,7 +2,6 @@ export type Cell = '#' | '.';
 export type Grid = Cell[][];
 
 export function generateMaze(rows = 21, cols = 21): Grid {
-  // Force odd dimensions so walls and passages alternate cleanly
   rows = rows % 2 === 1 ? rows : rows + 1;
   cols = cols % 2 === 1 ? cols : cols + 1;
 
@@ -40,11 +39,19 @@ export function generateMaze(rows = 21, cols = 21): Grid {
     }
   }
 
+  // Cut entrance in top border above (1,1)
+  grid[0][1] = '.';
+  // Cut exit in bottom border below (rows-2, cols-2)
+  grid[rows - 1][cols - 2] = '.';
+
   return grid;
 }
 
 export function findStart(_maze: Grid): [number, number] {
-  // Always start at the top-left entrance — (1,1) is guaranteed open
-  // by the recursive backtracking generator
   return [1, 1];
+}
+
+export function findExit(maze: Grid): [number, number] {
+  // The exit opening is in the bottom border
+  return [maze.length - 1, maze[0].length - 2];
 }
