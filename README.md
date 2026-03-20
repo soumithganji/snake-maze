@@ -2,6 +2,8 @@
 
 A maze game where an LLM (LLaMA 3.3 70B) acts as the brain — observing the maze, reasoning about its options, and navigating the snake from start to exit in real time.
 
+![Snake Maze Agent](public/screenshot.png)
+
 ## How it works
 
 Each tick, the game:
